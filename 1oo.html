@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แจกสคริปต์</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .admin-box {
+            background-color: #ffffff;
+            border: 2px solid #333;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        button.delete-btn {
+            background-color: #dc3545;
+            float: right;
+        }
+        .script-card {
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        pre {
+            background-color: #eee;
+            padding: 10px;
+            overflow-x: auto;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- โซนแอดมินสำหรับจัดการสคริปต์ -->
+    <div class="admin-box">
+        <h2>ระบบแอดมิน (เพิ่ม/ลบ สคริปต์)</h2>
+        <div class="input-group">
+            <label for="title">ชื่อสคริปต์:</label>
+            <input type="text" id="title" placeholder="ใส่ชื่อสคริปต์ที่นี่...">
+        </div>
+        <div class="input-group">
+            <label for="code">โค้ดสคริปต์:</label>
+            <textarea id="code" rows="4" placeholder="วางโค้ดสคริปต์ที่นี่..."></textarea>
+        </div>
+        <button onclick="addScript()">เพิ่มสคริปต์</button>
+    </div>
+
+    <hr>
+
+    <!-- รายการสคริปต์ที่แจก -->
+    <h2>รายการสคริปต์ทั้งหมด</h2>
+    <div id="scriptContainer">
+        <!-- สคริปต์จะถูกเพิ่มเข้ามาตรงนี้ -->
+    </div>
+
+    <script>
+        // ดึงข้อมูลสคริปต์จาก localStorage (ถ้ามี)
+        let scripts = JSON.parse(localStorage.getItem('myScripts')) || [];
+
+        // ฟังก์ชันแสดงรายการสคริปต์
+        function renderScripts() {
+            const container = document.getElementById('scriptContainer');
+            container.innerHTML = '';
+
+            if (scripts.length === 0) {
+                container.innerHTML = '<p style="text-align:center;">ยังไม่มีสคริปต์ที่เพิ่ม เข้ามาใส่เพิ่มได้ที่ด้านบนครับ</p>';
+                return;
+            }
+
+            scripts.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'script-card';
+                div.innerHTML = `
+                    <button class="delete-btn" onclick="deleteScript(${index})">ลบสคริปต์</button>
+                    <h3>${item.title}</h3>
+                    <pre><code>${escapeHtml(item.code)}</code></pre>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ฟังก์ชันเพิ่มสคริปต์
+        function addScript() {
+            const titleInput = document.getElementById('title');
+            const codeInput = document.getElementById('code');
+
+            if (!titleInput.value.trim() || !codeInput.value.trim()) {
+                alert('กรุณากรอกทั้งชื่อและโค้ดสคริปต์');
+                return;
+            }
+
+            const newScript = {
+                title: titleInput.value,
+                code: codeInput.value
+            };
+
+            scripts.push(newScript);
+            saveAndRender();
+
+            // ล้างช่องกรอกข้อมูล
+            titleInput.value = '';
+            codeInput.value = '';
+        }
+
+        // ฟังก์ชันลบสคริปต์
+        function deleteScript(index) {
+            if (confirm('คุณต้องการลบสคริปต์นี้ใช่ไหม?')) {
+                scripts.splice(index, 1);
+                saveAndRender();
+            }
+        }
+
+        // บันทึกลง localStorage และโหลดรายการใหม่
+        function saveAndRender() {
+            localStorage.setItem('myScripts', JSON.stringify(scripts));
+            renderScripts();
+        }
+
+        // ช่วยแปลงตัวอักษรพิเศษป้องกันข้อผิดพลาดในการแสดงผล
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // แสดงผลครั้งแรกเมื่อเปิดหน้าเว็บ
+        renderScripts();
+    </script>
+</body>
+</html>
